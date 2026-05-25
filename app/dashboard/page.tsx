@@ -1,7 +1,16 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer
+} from 'recharts'
 
 export default function Dashboard() {
   const [products, setProducts] = useState<any[]>([])
@@ -11,15 +20,35 @@ export default function Dashboard() {
   const [editQuantity, setEditQuantity] = useState('')
   const [role, setRole] = useState('')
   const [search, setSearch] = useState('')
+  const [companyId, setCompanyId] = useState('')
 
   // Fetch products
   const fetchProducts = async () => {
-    const { data } = await supabase
-      .from('products')
-      .select('*')
+  const {
+    data: { user }
+  } = await supabase.auth.getUser()
 
-    setProducts(data || [])
-  }
+  if (!user) return
+
+  // Get logged user's company
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('company_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile) return
+
+  setCompanyId(profile.company_id)
+
+  // Fetch ONLY company products
+  const { data } = await supabase
+    .from('products')
+    .select('*')
+    .eq('company_id', profile.company_id)
+
+  setProducts(data || [])
+}
 
   // Add product
   const addProduct = async () => {
@@ -51,19 +80,26 @@ export default function Dashboard() {
   // Fetch role + realtime
   useEffect(() => {
     const fetchRole = async () => {
-      const { data: userData } =
-        await supabase.auth.getUser()
+  const {
+    data: { user }
+  } = await supabase.auth.getUser()
 
-      if (!userData.user) return
+  if (!user) {
+    window.location.href = '/login'
+    return
+  }
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userData.user.id)
-        .single()
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
 
-      setRole(profile?.role || '')
-    }
+  if (!profile) return
+
+  setRole(profile.role)
+  setCompanyId(profile.company_id)
+}
 
     fetchRole()
     fetchProducts()
@@ -114,6 +150,14 @@ export default function Dashboard() {
     (p) => Number(p.quantity) < 5
   )
 
+  const salesData = [
+    { month: 'Jan', sales: 400 },
+    { month: 'Feb', sales: 700 },
+    { month: 'Mar', sales: 500 },
+    { month: 'Apr', sales: 900 },
+    { month: 'May', sales: 1200 },
+    { month: 'Jun', sales: 800 }
+  ]
   return (
     <div
       style={{
@@ -148,33 +192,55 @@ export default function Dashboard() {
         </h2>
 
         {/* Sidebar Buttons */}
-        {['📦 Dashboard', '🛒 Products', '📊 Reports'].map(
-          (item, index) => (
-            <div
-              key={index}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor =
-                  '#475569'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor =
-                  '#334155'
-              }}
-              style={{
-                padding: '14px 16px',
-                borderRadius: '12px',
-                backgroundColor: '#334155',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                fontWeight: '600',
-                fontSize: '15px',
-                marginBottom: '14px'
-              }}
-            >
-              {item}
-            </div>
-          )
-        )}
+        <div
+  style={{
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '14px'
+  }}
+>
+  <Link
+    href="/dashboard"
+    style={{
+      padding: '14px 16px',
+      borderRadius: '12px',
+      backgroundColor: '#2563eb',
+      color: 'white',
+      textDecoration: 'none',
+      fontWeight: '600'
+    }}
+  >
+    📦 Dashboard
+  </Link>
+
+  <Link
+    href="/dashboard/products"
+    style={{
+      padding: '14px 16px',
+      borderRadius: '12px',
+      backgroundColor: '#334155',
+      color: 'white',
+      textDecoration: 'none',
+      fontWeight: '600'
+    }}
+  >
+    🛒 Products
+  </Link>
+
+  <Link
+    href="/dashboard/reports"
+    style={{
+      padding: '14px 16px',
+      borderRadius: '12px',
+      backgroundColor: '#334155',
+      color: 'white',
+      textDecoration: 'none',
+      fontWeight: '600'
+    }}
+  >
+    📊 Reports
+  </Link>
+</div>
 
         {/* Logout */}
         <button
@@ -343,6 +409,83 @@ export default function Dashboard() {
           ))}
         </div>
 
+{/* Sales Analytics */}
+<div
+  style={{
+    backgroundColor: 'white',
+    padding: '24px',
+    borderRadius: '16px',
+    marginBottom: '30px',
+    boxShadow:
+      '0 4px 10px rgba(0,0,0,0.06)'
+  }}
+>
+  <div
+    style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: '20px',
+      flexWrap: 'wrap',
+      gap: '10px'
+    }}
+  >
+    <div>
+      <h2
+        style={{
+          margin: 0,
+          color: '#111827'
+        }}
+      >
+        📈 Sales Overview
+      </h2>
+
+      <p
+        style={{
+          color: '#6b7280',
+          marginTop: '6px'
+        }}
+      >
+        Monthly sales performance
+      </p>
+    </div>
+
+    <div
+      style={{
+        backgroundColor: '#dcfce7',
+        color: '#166534',
+        padding: '8px 14px',
+        borderRadius: '999px',
+        fontWeight: '600'
+      }}
+    >
+      +12.5%
+    </div>
+  </div>
+
+  <div
+    style={{
+      width: '100%',
+      height: '300px'
+    }}
+  >
+    <ResponsiveContainer>
+      <LineChart data={salesData}>
+        <XAxis dataKey="month" />
+        <YAxis />
+        <Tooltip />
+
+        <Line
+          type="monotone"
+          dataKey="sales"
+          stroke="#2563eb"
+          strokeWidth={3}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  </div>
+</div>
+
         {/* Low Stock Alerts */}
         {lowStockProducts.length > 0 && (
           <div
@@ -414,304 +557,6 @@ export default function Dashboard() {
                 '0 2px 8px rgba(0,0,0,0.04)'
             }}
           />
-        </div>
-
-        {/* Add Product */}
-        {role === 'admin' && (
-          <div
-            style={{
-              backgroundColor: 'white',
-              padding: '20px',
-              borderRadius: '14px',
-              marginBottom: '25px',
-              boxShadow:
-                '0 4px 10px rgba(0,0,0,0.05)'
-            }}
-          >
-            <input
-              placeholder="Product name"
-              value={name}
-              onChange={(e) =>
-                setName(e.target.value)
-              }
-              style={{
-                padding: '10px',
-                marginRight: '10px',
-                borderRadius: '8px',
-                border: '1px solid #d1d5db'
-              }}
-            />
-
-            <input
-              placeholder="Quantity"
-              value={quantity}
-              onChange={(e) =>
-                setQuantity(e.target.value)
-              }
-              style={{
-                padding: '10px',
-                marginRight: '10px',
-                width: '100px',
-                borderRadius: '8px',
-                border: '1px solid #d1d5db'
-              }}
-            />
-
-            <button
-              onClick={addProduct}
-              style={{
-                backgroundColor: '#2563eb',
-                color: 'white',
-                padding: '10px 16px',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              Add Product
-            </button>
-          </div>
-        )}
-
-        {/* Product List */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '18px'
-          }}
-        >
-          {filteredProducts.length === 0 ? (
-            <div
-              style={{
-                backgroundColor: 'white',
-                padding: '40px',
-                borderRadius: '14px',
-                textAlign: 'center',
-                color: '#6b7280',
-                boxShadow:
-                  '0 4px 10px rgba(0,0,0,0.05)'
-              }}
-            >
-              <h2
-                style={{
-                  marginBottom: '10px'
-                }}
-              >
-                📦 No products found
-              </h2>
-
-              <p>
-                Add your first product to get
-                started.
-              </p>
-            </div>
-          ) : (
-            filteredProducts.map((p) => (
-              <div
-                key={p.id}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform =
-                    'translateY(-3px)'
-
-                  e.currentTarget.style.boxShadow =
-                    '0 8px 20px rgba(0,0,0,0.10)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform =
-                    'translateY(0px)'
-
-                  e.currentTarget.style.boxShadow =
-                    '0 4px 10px rgba(0,0,0,0.06)'
-                }}
-                style={{
-                  backgroundColor: 'white',
-                  padding: '24px',
-                  borderRadius: '14px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '15px',
-                  boxShadow:
-                    '0 4px 10px rgba(0,0,0,0.06)',
-                  transition: 'all 0.2s ease',
-                  border: '1px solid #e5e7eb',
-                  cursor: 'pointer'
-                }}
-              >
-                {editingId !== p.id ? (
-                  <>
-                    <div>
-                      <h3
-                        style={{
-                          margin: 0,
-                          fontSize: '20px',
-                          fontWeight: '600',
-                          color: '#111827'
-                        }}
-                      >
-                        {p.name}
-                      </h3>
-
-                      <div
-                        style={{
-                          marginTop: '8px',
-                          display: 'inline-block',
-                          backgroundColor:
-                            p.quantity < 5
-                              ? '#fee2e2'
-                              : '#dcfce7',
-                          color:
-                            p.quantity < 5
-                              ? '#b91c1c'
-                              : '#166534',
-                          padding: '6px 12px',
-                          borderRadius: '999px',
-                          fontSize: '14px',
-                          fontWeight: '600'
-                        }}
-                      >
-                        Qty: {p.quantity}
-                      </div>
-                    </div>
-
-                    {role === 'admin' && (
-                      <div
-                        style={{
-                          display: 'flex',
-                          gap: '12px',
-                          alignItems: 'center'
-                        }}
-                      >
-                        <button
-                          onClick={() => {
-                            setEditingId(p.id)
-                            setEditQuantity(
-                              p.quantity
-                            )
-                          }}
-                          style={{
-                            backgroundColor:
-                              'orange',
-                            color: 'white',
-                            padding: '8px 14px',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            transition:
-                              'all 0.2s ease'
-                          }}
-                        >
-                          Edit
-                        </button>
-
-                        <button
-                          onClick={async () => {
-                            await supabase
-                              .from('products')
-                              .delete()
-                              .eq('id', p.id)
-
-                            fetchProducts()
-                          }}
-                          style={{
-                            backgroundColor:
-                              'red',
-                            color: 'white',
-                            padding: '8px 14px',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            transition:
-                              'all 0.2s ease'
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <input
-                      value={editQuantity}
-                      onChange={(e) =>
-                        setEditQuantity(
-                          e.target.value
-                        )
-                      }
-                      style={{
-                        padding: '8px',
-                        width: '80px',
-                        borderRadius: '8px',
-                        border:
-                          '1px solid #d1d5db'
-                      }}
-                    />
-
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: '10px'
-                      }}
-                    >
-                      <button
-                        onClick={async () => {
-                          await supabase
-                            .from('products')
-                            .update({
-                              quantity:
-                                Number(
-                                  editQuantity
-                                )
-                            })
-                            .eq('id', p.id)
-
-                          setEditingId(null)
-
-                          fetchProducts()
-                        }}
-                        style={{
-                          backgroundColor:
-                            'green',
-                          color: 'white',
-                          padding: '8px 14px',
-                          border: 'none',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          transition:
-                            'all 0.2s ease'
-                        }}
-                      >
-                        Save
-                      </button>
-
-                      <button
-                        onClick={() =>
-                          setEditingId(null)
-                        }
-                        style={{
-                          backgroundColor:
-                            'gray',
-                          color: 'white',
-                          padding: '8px 14px',
-                          border: 'none',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          transition:
-                            'all 0.2s ease'
-                        }}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            ))
-          )}
         </div>
       </div>
     </div>

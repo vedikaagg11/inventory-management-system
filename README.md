@@ -1,141 +1,206 @@
-# Inventory Management System
+# 📦 StockFlow – AI-Powered Inventory Management System
 
-A multi-company inventory and stock management system built using Next.js and Supabase.
+## Overview
+
+StockFlow is a modern inventory management system built with Next.js, TypeScript, Supabase, and PostgreSQL. It helps businesses manage products, customers, vendors, transactions, and inventory data through a centralized dashboard.
+
+The project is designed as the foundation for an AI-powered inventory platform that can provide intelligent stock monitoring, demand forecasting, and inventory optimization.
+
+---
 
 ## Features
 
-### Authentication
+### 🔐 Authentication & Authorization
 
-* Company-based login system
-* Secure user authentication using Supabase
-* Role-based access control (Admin/User)
+* Secure user authentication using Supabase Auth
+* Login and registration system
+* Role-based access support
+* Company-specific data isolation
 
-### Inventory Management
+### 📊 Dashboard
+
+* Inventory overview dashboard
+* Total products statistics
+* Total stock quantity tracking
+* Inventory value calculation
+* Low-stock monitoring
+* Top product display
+* Analytics visualization
+
+### 🛒 Product Management
 
 * Add products
-* Edit product quantity
+* Edit product details
 * Delete products
-* Real-time product updates
-* Company-specific inventory isolation
+* Search products
+* Product image support
+* Quantity management
+* Price management
 
-### User Roles
+### 👥 Customer Management
 
-#### Admin
+* Add customers
+* View customer records
+* Edit customer details
+* Delete customers
 
-* Add products
-* Edit products
-* Delete products
-* Manage inventory
+### 🏢 Vendor Management
 
-#### User
+* Add vendors
+* View vendor records
+* Edit vendor information
+* Delete vendors
 
-* View inventory only
+### 💰 Transaction Management
 
-### Dashboard
+* Record sales transactions
+* Record purchase transactions
+* Automatic inventory updates
+* Transaction history tracking
+* Product-wise transaction records
 
-* Product listing
-* Real-time synchronization
-* Clean dashboard UI
-* Logout functionality
+### 📈 Reports
 
-## Tech Stack
+* Product inventory reports
+* Stock summaries
+* Business insights
+* Inventory analytics
+
+### ⚠️ Inventory Monitoring
+
+* Low stock alerts
+* Real-time inventory updates
+* Inventory status tracking
+
+---
+
+## Technology Stack
 
 ### Frontend
 
 * Next.js
 * React
 * TypeScript
+* Recharts
 
 ### Backend
 
 * Supabase
 * PostgreSQL
+
+### Authentication
+
 * Supabase Auth
-* Supabase Realtime
 
-## Project Structure
+### Database
 
-```bash
-inventory-app/
-├── app/
-│   ├── dashboard/
-│   ├── login/
-│   ├── signup/
-│   └── layout.tsx
-├── lib/
-│   └── supabase.ts
-├── .env.local
-├── package.json
-└── README.md
-```
+* PostgreSQL
+* Row Level Security (RLS)
 
-## Environment Variables
+### Deployment
 
-Create a `.env.local` file:
+* Vercel (Planned)
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
+---
 
-## Installation
+## Database Structure
 
-```bash
-npm install
-```
+### Tables
 
-## Run Locally
+#### Profiles
 
-```bash
-npm run dev
-```
+Stores user information and company association.
 
-Open:
+#### Products
 
-```text
-http://localhost:3000
-```
+Stores product details including:
 
-## Current Development Roadmap
+* Name
+* Quantity
+* Price
+* Image URL
+* Company ID
 
-### Phase 1
+#### Customers
 
-* Authentication system
+Stores customer records.
+
+#### Vendors
+
+Stores vendor records.
+
+#### Transactions
+
+Stores purchase and sales history.
+
+---
+
+## Security Features
+
+* Company-based data separation
+* Authenticated access only
+* Protected dashboard routes
+* Secure database policies using Supabase RLS
+
+---
+
+## Future Enhancements
+
+### 🤖 AI Features
+
+* Demand forecasting
+* Inventory prediction
+* Smart reorder recommendations
+* AI-generated inventory reports
+* Automated stock optimization
+
+### 📊 Advanced Analytics
+
+* Real sales analytics
+* Revenue tracking
+* Profit analysis
+* Performance dashboards
+
+### 📤 Export Options
+
+* PDF reports
+* Excel exports
+* Downloadable analytics
+
+### ☁️ Storage
+
+* Product image uploads using Supabase Storage
+
+---
+
+## Project Status
+
+Current Version: v1.0
+
+Completed Modules:
+
+* Authentication
 * Dashboard
-* CRUD operations
-* Role-based access
-* Realtime updates
+* Products
+* Customers
+* Vendors
+* Transactions
+* Reports
+* Company Data Isolation
 
-### Phase 2 (In Progress)
+Upcoming Modules:
 
-* Customers module
-* Vendors module
-* Employee module
-* Transactions system
-* Purchase & sales tracking
+* AI Inventory Insights
+* Forecasting System
+* Report Export
+* Image Upload System
 
-### Phase 3
-
-* Reports & analytics
-* Graphs and charts
-* Best-selling products
-* Sales performance reports
-
-### Phase 4
-
-* UI polish
-* Deployment
-* Production optimization
-
-## Future Goals
-
-* Multi-company SaaS platform
-* Advanced reporting system
-* Search & filtering
-* Low stock alerts
-* Sales analytics
-* Production deployment
+---
 
 ## Author
 
 Vedika Aggarwal
+
+Computer Science Engineering Student
+
+AI-Powered Inventory Management System Internship Project

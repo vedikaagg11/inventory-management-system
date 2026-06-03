@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import {
@@ -14,92 +13,53 @@ import {
 
 export default function Dashboard() {
   const [products, setProducts] = useState<any[]>([])
-  const [name, setName] = useState('')
-  const [quantity, setQuantity] = useState('')
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editQuantity, setEditQuantity] = useState('')
   const [role, setRole] = useState('')
   const [search, setSearch] = useState('')
-  const [companyId, setCompanyId] = useState('')
 
-  // Fetch products
   const fetchProducts = async () => {
-  const {
-    data: { user }
-  } = await supabase.auth.getUser()
+    const {
+      data: { user }
+    } = await supabase.auth.getUser()
 
-  if (!user) return
-
-  // Get logged user's company
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('company_id')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile) return
-
-  setCompanyId(profile.company_id)
-
-  // Fetch ONLY company products
-  const { data } = await supabase
-    .from('products')
-    .select('*')
-    .eq('company_id', profile.company_id)
-
-  setProducts(data || [])
-}
-
-  // Add product
-  const addProduct = async () => {
-    const { data: userData } =
-      await supabase.auth.getUser()
-
-    if (!userData.user) return
+    if (!user) return
 
     const { data: profile } = await supabase
       .from('profiles')
       .select('company_id')
-      .eq('id', userData.user.id)
+      .eq('id', user.id)
       .single()
 
-    await supabase.from('products').insert([
-      {
-        name,
-        quantity: Number(quantity),
-        company_id: profile.company_id
-      }
-    ])
+    if (!profile) return
 
-    setName('')
-    setQuantity('')
+    const { data } = await supabase
+      .from('products')
+      .select('*')
+      .eq('company_id', profile.company_id)
 
-    fetchProducts()
+    setProducts(data || [])
   }
 
-  // Fetch role + realtime
   useEffect(() => {
     const fetchRole = async () => {
-  const {
-    data: { user }
-  } = await supabase.auth.getUser()
+      const {
+        data: { user }
+      } = await supabase.auth.getUser()
 
-  if (!user) {
-    window.location.href = '/login'
-    return
-  }
+      if (!user) {
+        window.location.href = '/login'
+        return
+      }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
 
-  if (!profile) return
+      if (!profile) return
 
-  setRole(profile.role)
-  setCompanyId(profile.company_id)
-}
+      setRole(profile.role)
+    }
 
     fetchRole()
     fetchProducts()
@@ -124,13 +84,6 @@ export default function Dashboard() {
     }
   }, [])
 
-  // Logout
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    window.location.href = '/login'
-  }
-
-  // Stats
   const totalProducts = products.length
 
   const totalQuantity = products.reduce(
@@ -142,13 +95,21 @@ export default function Dashboard() {
     (p) => Number(p.quantity) < 5
   ).length
 
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
+  const inventoryValue = products.reduce(
+    (sum, p) =>
+      sum +
+      Number(p.quantity) *
+        Number(p.price || 0),
+    0
   )
 
   const lowStockProducts = products.filter(
     (p) => Number(p.quantity) < 5
   )
+
+  const bestProduct = [...products].sort(
+    (a, b) => b.quantity - a.quantity
+  )[0]
 
   const salesData = [
     { month: 'Jan', sales: 400 },
@@ -158,407 +119,234 @@ export default function Dashboard() {
     { month: 'May', sales: 1200 },
     { month: 'Jun', sales: 800 }
   ]
+
   return (
     <div
       style={{
-        display: 'flex',
-        minHeight: '100vh',
-        fontFamily: 'Inter, system-ui, sans-serif',
-        backgroundColor: '#f1f5f9'
+        padding: '30px'
       }}
     >
-      {/* Sidebar */}
+      {/* Header */}
       <div
         style={{
-          width: '240px',
-          background:
-            'linear-gradient(to bottom, #0f172a, #1e293b)',
-          color: 'white',
-          padding: '24px',
           display: 'flex',
-          flexDirection: 'column',
-          borderRight:
-            '1px solid rgba(255,255,255,0.08)'
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '30px'
         }}
       >
-        <h2
-          style={{
-            marginBottom: '40px',
-            fontSize: '28px',
-            fontWeight: 'bold'
-          }}
-        >
-          📦 StockFlow
-        </h2>
+        <div>
+          <h1
+            style={{
+              fontSize: '34px',
+              marginBottom: '8px'
+            }}
+          >
+            Inventory Dashboard
+          </h1>
 
-        {/* Sidebar Buttons */}
+          <p
+            style={{
+              color: '#6b7280'
+            }}
+          >
+            Manage your inventory efficiently.
+          </p>
+        </div>
+
         <div
-  style={{
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '14px'
-  }}
->
-  <Link
-    href="/dashboard"
-    style={{
-      padding: '14px 16px',
-      borderRadius: '12px',
-      backgroundColor: '#2563eb',
-      color: 'white',
-      textDecoration: 'none',
-      fontWeight: '600'
-    }}
-  >
-    📦 Dashboard
-  </Link>
-
-  <Link
-    href="/dashboard/products"
-    style={{
-      padding: '14px 16px',
-      borderRadius: '12px',
-      backgroundColor: '#334155',
-      color: 'white',
-      textDecoration: 'none',
-      fontWeight: '600'
-    }}
-  >
-    🛒 Products
-  </Link>
-
-  <Link
-    href="/dashboard/reports"
-    style={{
-      padding: '14px 16px',
-      borderRadius: '12px',
-      backgroundColor: '#334155',
-      color: 'white',
-      textDecoration: 'none',
-      fontWeight: '600'
-    }}
-  >
-    📊 Reports
-  </Link>
-</div>
-
-        {/* Logout */}
-        <button
-          onClick={handleLogout}
           style={{
-            marginTop: 'auto',
-            backgroundColor: '#ef4444',
-            color: 'white',
-            border: 'none',
-            padding: '12px',
-            borderRadius: '10px',
-            cursor: 'pointer',
-            fontWeight: '600',
-            fontSize: '15px',
-            transition: 'all 0.2s ease'
+            backgroundColor: 'white',
+            padding: '12px 18px',
+            borderRadius: '12px',
+            boxShadow:
+              '0 4px 10px rgba(0,0,0,0.06)'
           }}
         >
-          Logout
-        </button>
+          <strong>
+            {role.toUpperCase()}
+          </strong>
+        </div>
       </div>
 
-      {/* Main Content */}
+      {/* Stats Cards */}
       <div
         style={{
-          flex: 1,
-          padding: '30px',
-          overflowX: 'hidden'
+          display: 'grid',
+          gridTemplateColumns:
+            'repeat(auto-fit,minmax(220px,1fr))',
+          gap: '20px',
+          marginBottom: '30px'
         }}
       >
-        {/* Header */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '18px',
-            marginBottom: '30px'
-          }}
-        >
-          <div>
-            <h1
-              style={{
-                fontSize: '34px',
-                fontWeight: '700',
-                margin: 0,
-                color: '#111827'
-              }}
-            >
-              Inventory Dashboard
-            </h1>
+        {[
+          {
+            title: 'Total Products',
+            value: totalProducts,
+            color: '#111827'
+          },
+          {
+            title: 'Total Quantity',
+            value: totalQuantity,
+            color: '#111827'
+          },
+          {
+            title: 'Inventory Value',
+            value: `₹${inventoryValue}`,
+            color: '#2563eb'
+          },
+          {
+            title: 'Low Stock',
+            value: lowStock,
+            color: '#ef4444'
+          }
+        ].map((card, index) => (
+          <div
+            key={index}
+            style={{
+              backgroundColor: 'white',
+              padding: '24px',
+              borderRadius: '14px',
+              boxShadow:
+                '0 4px 10px rgba(0,0,0,0.06)'
+            }}
+          >
+            <h3>{card.title}</h3>
 
             <p
               style={{
-                marginTop: '6px',
-                color: '#6b7280',
-                fontSize: '15px'
+                fontSize: '30px',
+                fontWeight: 'bold',
+                color: card.color
               }}
             >
-              Manage your products and inventory
-              easily.
+              {card.value}
             </p>
           </div>
+        ))}
+      </div>
 
-          {/* Profile */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              backgroundColor: 'white',
-              padding: '10px 16px',
-              borderRadius: '14px',
-              boxShadow:
-                '0 6px 16px rgba(0,0,0,0.06)'
-            }}
-          >
-            <div
-              style={{
-                width: '42px',
-                height: '42px',
-                borderRadius: '50%',
-                backgroundColor: '#2563eb',
-                color: 'white',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 'bold',
-                fontSize: '18px'
-              }}
-            >
-              {role.charAt(0).toUpperCase()}
-            </div>
-
-            <div>
-              <div
-                style={{
-                  fontWeight: '700',
-                  color: '#111827'
-                }}
-              >
-                {role.toUpperCase()}
-              </div>
-
-              <div
-                style={{
-                  fontSize: '13px',
-                  color: '#6b7280'
-                }}
-              >
-                Welcome back 👋
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns:
-              'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: '20px',
-            marginBottom: '30px'
-          }}
-        >
-          {[
-            {
-              title: 'Total Products',
-              value: totalProducts,
-              color: '#111827'
-            },
-            {
-              title: 'Total Quantity',
-              value: totalQuantity,
-              color: '#111827'
-            },
-            {
-              title: 'Low Stock',
-              value: lowStock,
-              color: 'red'
-            }
-          ].map((card, index) => (
-            <div
-              key={index}
-              style={{
-                backgroundColor: 'white',
-                padding: '24px',
-                borderRadius: '14px',
-                boxShadow:
-                  '0 6px 16px rgba(0,0,0,0.06)'
-              }}
-            >
-              <h3>{card.title}</h3>
-
-              <p
-                style={{
-                  fontSize: '28px',
-                  fontWeight: 'bold',
-                  color: card.color
-                }}
-              >
-                {card.value}
-              </p>
-            </div>
-          ))}
-        </div>
-
-{/* Sales Analytics */}
-<div
-  style={{
-    backgroundColor: 'white',
-    padding: '24px',
-    borderRadius: '16px',
-    marginBottom: '30px',
-    boxShadow:
-      '0 4px 10px rgba(0,0,0,0.06)'
-  }}
->
-  <div
-    style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: '20px',
-      flexWrap: 'wrap',
-      gap: '10px'
-    }}
-  >
-    <div>
-      <h2
+      {/* Best Product */}
+      <div
         style={{
-          margin: 0,
-          color: '#111827'
+          backgroundColor: 'white',
+          padding: '20px',
+          borderRadius: '14px',
+          marginBottom: '25px',
+          boxShadow:
+            '0 4px 10px rgba(0,0,0,0.06)'
         }}
       >
-        📈 Sales Overview
-      </h2>
+        <h2>🏆 Best Stocked Product</h2>
 
-      <p
-        style={{
-          color: '#6b7280',
-          marginTop: '6px'
-        }}
-      >
-        Monthly sales performance
-      </p>
-    </div>
-
-    <div
-      style={{
-        backgroundColor: '#dcfce7',
-        color: '#166534',
-        padding: '8px 14px',
-        borderRadius: '999px',
-        fontWeight: '600'
-      }}
-    >
-      +12.5%
-    </div>
-  </div>
-
-  <div
-    style={{
-      width: '100%',
-      height: '300px'
-    }}
-  >
-    <ResponsiveContainer>
-      <LineChart data={salesData}>
-        <XAxis dataKey="month" />
-        <YAxis />
-        <Tooltip />
-
-        <Line
-          type="monotone"
-          dataKey="sales"
-          stroke="#2563eb"
-          strokeWidth={3}
-        />
-      </LineChart>
-    </ResponsiveContainer>
-  </div>
-</div>
-
-        {/* Low Stock Alerts */}
-        {lowStockProducts.length > 0 && (
-          <div
-            style={{
-              backgroundColor: '#fef2f2',
-              border: '1px solid #fecaca',
-              padding: '18px',
-              borderRadius: '12px',
-              marginBottom: '20px'
-            }}
-          >
-            <h3
+        {bestProduct ? (
+          <>
+            <img
+              src={
+                bestProduct.image_url ||
+                'https://via.placeholder.com/300'
+              }
+              alt={bestProduct.name}
               style={{
-                color: '#b91c1c',
-                marginBottom: '12px'
+                width: '200px',
+                borderRadius: '12px',
+                marginTop: '15px'
               }}
-            >
-              ⚠ Low Stock Alerts
-            </h3>
+            />
 
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '10px'
-              }}
-            >
-              {lowStockProducts.map((p) => (
-                <div
-                  key={p.id}
-                  style={{
-                    backgroundColor: 'white',
-                    padding: '10px',
-                    borderRadius: '8px',
-                    color: '#991b1b',
-                    fontWeight: '600'
-                  }}
-                >
-                  {p.name} — Only {p.quantity} left
-                </div>
-              ))}
-            </div>
-          </div>
+            <h3>{bestProduct.name}</h3>
+
+            <p>
+              Quantity:
+              {' '}
+              {bestProduct.quantity}
+            </p>
+
+            <p>
+              Price:
+              {' '}
+              ₹{bestProduct.price}
+            </p>
+          </>
+        ) : (
+          <p>No products available</p>
         )}
+      </div>
 
-        {/* Search */}
-        <div
+      {/* Sales Analytics */}
+      <div
+        style={{
+          backgroundColor: 'white',
+          padding: '25px',
+          borderRadius: '14px',
+          marginBottom: '25px',
+          boxShadow:
+            '0 4px 10px rgba(0,0,0,0.06)'
+        }}
+      >
+        <h2>📈 Sales Analytics</h2>
+
+        <p
           style={{
+            color: '#6b7280',
             marginBottom: '20px'
           }}
         >
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={search}
-            onChange={(e) =>
-              setSearch(e.target.value)
-            }
-            style={{
-              width: '100%',
-              maxWidth: '500px',
-              padding: '14px',
-              borderRadius: '10px',
-              border: '1px solid #d1d5db',
-              fontSize: '16px',
-              outline: 'none',
-              backgroundColor: 'white',
-              boxShadow:
-                '0 2px 8px rgba(0,0,0,0.04)'
-            }}
-          />
-        </div>
+          Monthly sales performance
+        </p>
+
+        <ResponsiveContainer
+          width="100%"
+          height={300}
+        >
+          <LineChart data={salesData}>
+            <XAxis dataKey="month" />
+            <YAxis />
+            <Tooltip />
+
+            <Line
+              type="monotone"
+              dataKey="sales"
+              stroke="#2563eb"
+              strokeWidth={3}
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
+
+      {/* Low Stock Alerts */}
+      {lowStockProducts.length > 0 && (
+        <div
+          style={{
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            padding: '20px',
+            borderRadius: '12px'
+          }}
+        >
+          <h2
+            style={{
+              color: '#b91c1c'
+            }}
+          >
+            ⚠ Low Stock Alerts
+          </h2>
+
+          {lowStockProducts.map((p) => (
+            <div
+              key={p.id}
+              style={{
+                backgroundColor: 'white',
+                padding: '12px',
+                borderRadius: '8px',
+                marginTop: '10px'
+              }}
+            >
+              {p.name} — Only {p.quantity} left
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

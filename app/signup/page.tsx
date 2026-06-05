@@ -13,53 +13,77 @@ export default function SignupPage() {
   const [password, setPassword] = useState('')
 
   const handleSignup = async () => {
-    // 1️⃣ Create auth user
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password
-    })
+    if (
+      !companyName ||
+      !adminName ||
+      !email ||
+      !password
+    ) {
+      alert('Please fill all fields')
+      return
+    }
 
+    // Create Auth User
+    const { data, error } =
+      await supabase.auth.signUp({
+        email,
+        password
+      })
+      console.log(data)
+      console.log(error)
     if (error) {
       alert(error.message)
       return
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    const user = data.user
 
-    // 2️⃣ Create company
-    const { data: companyData, error: companyError } =
-      await supabase
-        .from('companies')
-        .insert([
-          {
-            name: companyName
-          }
-        ])
-        .select()
-        .single()
+    if (!user) {
+      alert('User creation failed')
+      return
+    }
+
+    // Create Company
+    const {
+      data: companyData,
+      error: companyError
+    } = await supabase
+      .from('companies')
+      .insert([
+        {
+          name: companyName
+        }
+      ])
+      .select()
+      .single()
 
     if (companyError) {
       alert(companyError.message)
       return
     }
 
-    // 3️⃣ Create admin profile
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert([
-        {
-          id: user.id?.id,
-          company_id: companyData.id,
-          role: 'admin'
-        }
-      ])
+    // Create Admin Profile
+    const { error: profileError } =
+      await supabase
+  .from('profiles')
+  .insert([
+    {
+      id: data.user.id,
+      company_id: companyData.id,
+      name: adminName,
+      email,
+      role: 'admin'
+    }
+  ])
 
     if (profileError) {
       alert(profileError.message)
       return
     }
 
-    alert('Company registered successfully!')
+    alert(
+      'Company registered successfully!'
+    )
 
     router.push('/login')
   }
@@ -82,7 +106,8 @@ export default function SignupPage() {
           padding: '40px',
           borderRadius: '18px',
           width: '400px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.25)'
+          boxShadow:
+            '0 10px 30px rgba(0,0,0,0.25)'
         }}
       >
         <h1
@@ -99,7 +124,9 @@ export default function SignupPage() {
           type="text"
           placeholder="Company Name"
           value={companyName}
-          onChange={(e) => setCompanyName(e.target.value)}
+          onChange={(e) =>
+            setCompanyName(e.target.value)
+          }
           style={inputStyle}
         />
 
@@ -107,7 +134,9 @@ export default function SignupPage() {
           type="text"
           placeholder="Admin Name"
           value={adminName}
-          onChange={(e) => setAdminName(e.target.value)}
+          onChange={(e) =>
+            setAdminName(e.target.value)
+          }
           style={inputStyle}
         />
 
@@ -115,7 +144,9 @@ export default function SignupPage() {
           type="email"
           placeholder="Email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) =>
+            setEmail(e.target.value)
+          }
           style={inputStyle}
         />
 
@@ -123,7 +154,9 @@ export default function SignupPage() {
           type="password"
           placeholder="Password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) =>
+            setPassword(e.target.value)
+          }
           style={inputStyle}
         />
 

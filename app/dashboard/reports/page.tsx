@@ -49,13 +49,33 @@ export default function ReportsPage() {
   )
 
   const lowStockProducts = products.filter(
-    (p) => p.quantity < 5
+    (p) => Number(p.quantity) < 5
   )
 
-  const topProduct =
+  const topProduct = [...products].sort(
+    (a, b) =>
+      Number(b.quantity) -
+      Number(a.quantity)
+  )[0]
+
+  const mostValuableProduct =
     [...products].sort(
-      (a, b) => b.quantity - a.quantity
+      (a, b) =>
+        Number(b.quantity) *
+          Number(b.price || 0) -
+        Number(a.quantity) *
+          Number(a.price || 0)
     )[0]
+
+  const healthScore =
+    totalProducts === 0
+      ? 0
+      : Math.round(
+          ((totalProducts -
+            lowStockProducts.length) /
+            totalProducts) *
+            100
+        )
 
   return (
     <div>
@@ -97,15 +117,20 @@ export default function ReportsPage() {
           title="Low Stock Items"
           value={lowStockProducts.length}
         />
+
+        <ReportCard
+          title="Inventory Health"
+          value={`${healthScore}%`}
+        />
       </div>
 
-      {/* Top Product */}
+      {/* Best Stocked Product */}
       <div
         style={{
           background: 'white',
           padding: '20px',
           borderRadius: '14px',
-          marginBottom: '25px'
+          marginBottom: '20px'
         }}
       >
         <h2>🏆 Best Stocked Product</h2>
@@ -120,7 +145,36 @@ export default function ReportsPage() {
         )}
       </div>
 
-      {/* Product Report Table */}
+      {/* Most Valuable Product */}
+      <div
+        style={{
+          background: 'white',
+          padding: '20px',
+          borderRadius: '14px',
+          marginBottom: '25px'
+        }}
+      >
+        <h2>💎 Most Valuable Product</h2>
+
+        {mostValuableProduct ? (
+          <p>
+            {mostValuableProduct.name}
+            {' '}
+            (₹
+            {Number(
+              mostValuableProduct.quantity
+            ) *
+              Number(
+                mostValuableProduct.price
+              )}
+            )
+          </p>
+        ) : (
+          <p>No products available</p>
+        )}
+      </div>
+
+      {/* Product Table */}
       <div
         style={{
           background: 'white',
@@ -144,23 +198,66 @@ export default function ReportsPage() {
         >
           <thead>
             <tr>
+              <th>Image</th>
               <th>Name</th>
               <th>Qty</th>
               <th>Price</th>
               <th>Total Value</th>
+              <th>Status</th>
             </tr>
           </thead>
 
           <tbody>
             {products.map((p) => (
               <tr key={p.id}>
+                <td>
+                  <img
+                    src={
+                      p.image_url ||
+                      'https://via.placeholder.com/50'
+                    }
+                    alt={p.name}
+                    style={{
+                      width: '50px',
+                      height: '50px',
+                      objectFit: 'cover',
+                      borderRadius: '8px'
+                    }}
+                  />
+                </td>
+
                 <td>{p.name}</td>
+
                 <td>{p.quantity}</td>
+
                 <td>₹ {p.price}</td>
+
                 <td>
                   ₹{' '}
                   {Number(p.quantity) *
-                    Number(p.price)}
+                    Number(p.price || 0)}
+                </td>
+
+                <td>
+                  {Number(p.quantity) < 5 ? (
+                    <span
+                      style={{
+                        color: '#dc2626',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Low Stock
+                    </span>
+                  ) : (
+                    <span
+                      style={{
+                        color: '#16a34a',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Healthy
+                    </span>
+                  )}
                 </td>
               </tr>
             ))}
@@ -168,7 +265,7 @@ export default function ReportsPage() {
         </table>
       </div>
 
-      {/* Low Stock Section */}
+      {/* Low Stock Report */}
       <div
         style={{
           background: '#fef2f2',
@@ -180,7 +277,10 @@ export default function ReportsPage() {
         <h2>⚠ Low Stock Report</h2>
 
         {lowStockProducts.length === 0 ? (
-          <p>All products sufficiently stocked</p>
+          <p>
+            All products sufficiently
+            stocked
+          </p>
         ) : (
           lowStockProducts.map((p) => (
             <p key={p.id}>

@@ -17,37 +17,47 @@ export default function DashboardLayout({
   }
 
   const navItems = [
-  {
-    name: 'Dashboard',
-    icon: '📦',
-    href: '/dashboard'
-  },
-  {
-    name: 'Products',
-    icon: '🛒',
-    href: '/dashboard/products'
-  },
-  {
-    name: 'Customers',
-    icon: '👥',
-    href: '/dashboard/customers'
-  },
-  {
-    name: 'Vendors',
-    icon: '🏢',
-    href: '/dashboard/vendors'
-  },
-  {
-    name: 'Transactions',
-    icon: '💰',
-    href: '/dashboard/transactions'
-  },
-  {
-    name: 'Reports',
-    icon: '📊',
-    href: '/dashboard/reports'
-  }
-]
+    {
+      name: 'Dashboard',
+      icon: '📦',
+      href: '/dashboard'
+    },
+    {
+      name: 'Products',
+      icon: '🛒',
+      href: '/dashboard/products'
+    },
+    {
+      name: 'Customers',
+      icon: '👥',
+      href: '/dashboard/customers'
+    },
+    {
+      name: 'Vendors',
+      icon: '🏢',
+      href: '/dashboard/vendors'
+    },
+    {
+      name: 'Transactions',
+      icon: '💰',
+      href: '/dashboard/transactions'
+    },
+    {
+      name: 'Reports',
+      icon: '📊',
+      href: '/dashboard/reports'
+    },
+    {
+      name: 'Employees',
+      icon: '👨‍💼',
+      href: '/dashboard/employees'
+    },
+    {
+      name: 'AI Forecast',
+      icon: '🤖',
+      href: '/dashboard/ai'
+    }
+  ]
 
   return (
     <div
@@ -73,7 +83,8 @@ export default function DashboardLayout({
         <h1
           style={{
             fontSize: '28px',
-            marginBottom: '40px'
+            marginBottom: '40px',
+            textAlign: 'center'
           }}
         >
           📦 StockFlow

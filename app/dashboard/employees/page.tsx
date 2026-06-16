@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<any[]>([])
@@ -9,6 +10,7 @@ export default function EmployeesPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [role, setRole] = useState('employee')
+  const router = useRouter()
 
   useEffect(() => {
     fetchEmployees()
@@ -23,11 +25,15 @@ export default function EmployeesPage() {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('company_id')
+      .select('company_id, role')
       .eq('id', user.id)
       .single()
-
+      
     if (!profile) return
+    if (profile.role !== 'admin') {
+      router.push('/dashboard')
+      return
+    }
 
     const { data } = await supabase
       .from('employee_invites')

@@ -98,6 +98,40 @@ export default function LoginPage() {
         >
           Login
         </button>
+
+<p style={{ marginTop: '15px' }}>
+  New employee?
+  <a
+    href="/employee-signup"
+    style={{
+      color: '#2563eb',
+      marginLeft: '5px'
+    }}
+  >
+    Create Account
+  </a>
+</p>
+
+<p
+  style={{
+    marginTop: '15px',
+    textAlign: 'center'
+  }}
+>
+  Employee joining a company?
+
+  <br />
+
+  <a
+    href="/employee-signup"
+    style={{
+      color: '#2563eb'
+    }}
+  >
+    Create Employee Account
+  </a>
+</p>
+
       </div>
     </div>
   )

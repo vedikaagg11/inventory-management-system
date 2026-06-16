@@ -142,7 +142,7 @@ export default function Dashboard() {
               marginBottom: '8px'
             }}
           >
-            Inventory Dashboard
+            Welcome Back 👋
           </h1>
 
           <p
@@ -150,7 +150,7 @@ export default function Dashboard() {
               color: '#6b7280'
             }}
           >
-            Manage your inventory efficiently.
+            Manage your inventory efficiently and track stock in real time
           </p>
         </div>
 

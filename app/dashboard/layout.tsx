@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { useEffect, useState } from 'react'
 
 export default function DashboardLayout({
   children
@@ -11,53 +12,82 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname()
 
+  const [role, setRole] = useState('')
+
+  useEffect(() => {
+  fetchRole()
+}, [])
+
+const fetchRole = async () => {
+  const {
+    data: { user }
+  } = await supabase.auth.getUser()
+
+  if (!user) return
+
+  const { data } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (data) {
+    setRole(data.role)
+  }
+}
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
     window.location.href = '/login'
   }
 
   const navItems = [
-    {
-      name: 'Dashboard',
-      icon: '📦',
-      href: '/dashboard'
-    },
-    {
-      name: 'Products',
-      icon: '🛒',
-      href: '/dashboard/products'
-    },
-    {
-      name: 'Customers',
-      icon: '👥',
-      href: '/dashboard/customers'
-    },
-    {
-      name: 'Vendors',
-      icon: '🏢',
-      href: '/dashboard/vendors'
-    },
-    {
-      name: 'Transactions',
-      icon: '💰',
-      href: '/dashboard/transactions'
-    },
-    {
-      name: 'Reports',
-      icon: '📊',
-      href: '/dashboard/reports'
-    },
-    {
-      name: 'Employees',
-      icon: '👨‍💼',
-      href: '/dashboard/employees'
-    },
-    {
-      name: 'AI Forecast',
-      icon: '🤖',
-      href: '/dashboard/ai'
-    }
-  ]
+  {
+    name: 'Dashboard',
+    icon: '📦',
+    href: '/dashboard'
+  },
+  {
+    name: 'Products',
+    icon: '🛒',
+    href: '/dashboard/products'
+  },
+  {
+    name: 'Transactions',
+    icon: '💰',
+    href: '/dashboard/transactions'
+  },
+  {
+    name: 'AI',
+    icon: '🤖',
+    href: '/dashboard/ai'
+  },
+
+  ...(role === 'admin'
+    ? [
+        {
+          name: 'Customers',
+          icon: '👥',
+          href: '/dashboard/customers'
+        },
+        {
+          name: 'Vendors',
+          icon: '🏢',
+          href: '/dashboard/vendors'
+        },
+        {
+          name: 'Reports',
+          icon: '📊',
+          href: '/dashboard/reports'
+        },
+        {
+          name: 'Employees',
+          icon: '👨‍💼',
+          href: '/dashboard/employees'
+        }
+      ]
+    : [])
+]
 
   return (
     <div

@@ -2,13 +2,35 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 
 export default function ReportsPage() {
   const [products, setProducts] = useState<any[]>([])
 
   useEffect(() => {
     fetchProducts()
+    const checkRole = async () => {
+  const {
+    data: { user }
+  } = await supabase.auth.getUser()
+
+  if (!user) return
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role !== 'admin') {
+    router.push('/dashboard')
+  }
+}
+
+checkRole()
   }, [])
+
+  const router = useRouter()
 
   const fetchProducts = async () => {
     const {
@@ -19,11 +41,15 @@ export default function ReportsPage() {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('company_id')
+      .select('company_id, role')
       .eq('id', user.id)
       .single()
 
     if (!profile) return
+    if (profile.role !== 'admin') {
+      router.push('/dashboard')
+      return
+    }
 
     const { data } = await supabase
       .from('products')

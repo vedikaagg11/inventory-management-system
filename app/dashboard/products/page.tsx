@@ -10,6 +10,7 @@ export default function ProductsPage() {
   const [price, setPrice] = useState('')
   const [imageUrl, setImageUrl] = useState('')
   const [search, setSearch] = useState('')
+  const [role, setRole] = useState('')
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
@@ -25,11 +26,12 @@ export default function ProductsPage() {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('company_id')
+      .select('company_id, role')
       .eq('id', user.id)
       .single()
 
     if (!profile) return
+    setRole(profile.role)
 
     const { data } = await supabase
       .from('products')
@@ -143,81 +145,82 @@ export default function ProductsPage() {
           marginBottom: '20px'
         }}
       />
-
-      <div
-        style={{
-          backgroundColor: 'white',
-          padding: '20px',
-          borderRadius: '14px',
-          marginBottom: '25px',
-          boxShadow: '0 4px 10px rgba(0,0,0,0.05)'
-        }}
-      >
-        <input
-          placeholder="Product name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+      {role === 'admin' && (
+        <div
           style={{
-            padding: '10px',
-            marginRight: '10px',
-            borderRadius: '8px',
-            border: '1px solid #d1d5db'
-          }}
-        />
-
-        <input
-          placeholder="Quantity"
-          value={quantity}
-          onChange={(e) => setQuantity(e.target.value)}
-          style={{
-            padding: '10px',
-            marginRight: '10px',
-            width: '100px',
-            borderRadius: '8px',
-            border: '1px solid #d1d5db'
-          }}
-        />
-
-        <input
-          placeholder="Price"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          style={{
-            padding: '10px',
-            marginRight: '10px',
-            width: '120px',
-            borderRadius: '8px',
-            border: '1px solid #d1d5db'
-          }}
-        />
-
-        <input
-          placeholder="Image URL"
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
-          style={{
-            padding: '10px',
-            marginRight: '10px',
-            width: '250px',
-            borderRadius: '8px',
-            border: '1px solid #d1d5db'
-          }}
-        />
-
-        <button
-          onClick={addProduct}
-          style={{
-            backgroundColor: '#2563eb',
-            color: 'white',
-            padding: '10px 16px',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer'
+            backgroundColor: 'white',
+            padding: '20px',
+            borderRadius: '14px',
+            marginBottom: '25px',
+            boxShadow: '0 4px 10px rgba(0,0,0,0.05)'
           }}
         >
-          Add Product
-        </button>
-      </div>
+          <input
+            placeholder="Product name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            style={{
+              padding: '10px',
+              marginRight: '10px',
+              borderRadius: '8px',
+              border: '1px solid #d1d5db'
+            }}
+          />
+
+          <input
+            placeholder="Quantity"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            style={{
+              padding: '10px',
+              marginRight: '10px',
+              width: '100px',
+              borderRadius: '8px',
+              border: '1px solid #d1d5db'
+            }}
+          />
+
+          <input
+            placeholder="Price"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            style={{
+              padding: '10px',
+              marginRight: '10px',
+              width: '120px',
+              borderRadius: '8px',
+              border: '1px solid #d1d5db'
+            }}
+          />
+
+          <input
+            placeholder="Image URL"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            style={{
+              padding: '10px',
+              marginRight: '10px',
+              width: '250px',
+              borderRadius: '8px',
+              border: '1px solid #d1d5db'
+            }}
+          />
+
+          <button
+            onClick={addProduct}
+            style={{
+              backgroundColor: '#2563eb',
+              color: 'white',
+              padding: '10px 16px',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer'
+            }}
+          >
+            Add Product
+          </button>
+        </div>
+      )}  
 
       <div
         style={{
@@ -357,20 +360,38 @@ export default function ProductsPage() {
                   >
                     Save
                   </button>
-                ) : (
+                ) : role === 'admin' ? (
+  <button
+    onClick={() => {
+      setEditingId(p.id)
+      setEditName(p.name)
+      setEditQuantity(
+        String(p.quantity)
+      )
+      setEditPrice(
+        String(p.price || '')
+      )
+    }}
+    style={{
+      backgroundColor: '#f59e0b',
+      color: 'white',
+      border: 'none',
+      padding: '10px 14px',
+      borderRadius: '8px',
+      cursor: 'pointer'
+    }}
+  >
+    Edit
+  </button>
+) : null
+}
+                {role === 'admin' && (
                   <button
-                    onClick={() => {
-                      setEditingId(p.id)
-                      setEditName(p.name)
-                      setEditQuantity(
-                        String(p.quantity)
-                      )
-                      setEditPrice(
-                        String(p.price || '')
-                      )
-                    }}
+                    onClick={() =>
+                      deleteProduct(p.id)
+                    }
                     style={{
-                      backgroundColor: '#f59e0b',
+                      backgroundColor: '#ef4444',
                       color: 'white',
                       border: 'none',
                       padding: '10px 14px',
@@ -378,25 +399,9 @@ export default function ProductsPage() {
                       cursor: 'pointer'
                     }}
                   >
-                    Edit
+                    Delete
                   </button>
                 )}
-
-                <button
-                  onClick={() =>
-                    deleteProduct(p.id)
-                  }
-                  style={{
-                    backgroundColor: '#ef4444',
-                    color: 'white',
-                    border: 'none',
-                    padding: '10px 14px',
-                    borderRadius: '8px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Delete
-                </button>
               </div>
             </div>
           </div>

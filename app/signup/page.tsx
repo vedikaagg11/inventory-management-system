@@ -29,23 +29,18 @@ export default function SignupPage() {
         email,
         password
       })
-      if (!data.user) {
-  alert('Signup failed')
-  return
-}
-      console.log(data)
-      console.log(error)
+
     if (error) {
       alert(error.message)
       return
     }
 
-    const user = data.user
-
-    if (!user) {
-      alert('User creation failed')
+    if (!data.user) {
+      alert('Signup failed')
       return
     }
+
+    const user = data.user
 
     // Create Company
     const {
@@ -69,16 +64,16 @@ export default function SignupPage() {
     // Create Admin Profile
     const { error: profileError } =
       await supabase
-  .from('profiles')
-  .insert([
-    {
-      id: data.user.id,
-      company_id: companyData.id,
-      name: adminName,
-      email,
-      role: 'admin'
-    }
-  ])
+        .from('profiles')
+        .insert([
+          {
+            id: user.id,
+            company_id: companyData.id,
+            name: adminName,
+            email,
+            role: 'admin'
+          }
+        ])
 
     if (profileError) {
       alert(profileError.message)

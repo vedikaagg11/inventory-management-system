@@ -13,6 +13,7 @@ import {
 
 export default function Dashboard() {
   const [products, setProducts] = useState<any[]>([])
+  const [transactions, setTransactions] = useState<any[]>([])
   const [role, setRole] = useState('')
   const [search, setSearch] = useState('')
 
@@ -37,6 +38,12 @@ export default function Dashboard() {
       .eq('company_id', profile.company_id)
 
     setProducts(data || [])
+    const { data: transactionsData } = await supabase
+    .from('transactions')
+    .select('*')
+    .eq('company_id', profile.company_id)
+
+    setTransactions(transactionsData || [])
   }
 
   useEffect(() => {
@@ -111,14 +118,28 @@ export default function Dashboard() {
     (a, b) => b.quantity - a.quantity
   )[0]
 
-  const salesData = [
-    { month: 'Jan', sales: 400 },
-    { month: 'Feb', sales: 700 },
-    { month: 'Mar', sales: 500 },
-    { month: 'Apr', sales: 900 },
-    { month: 'May', sales: 1200 },
-    { month: 'Jun', sales: 800 }
-  ]
+  const monthlySales: Record<string, number> = {}
+
+  transactions.forEach((t) => {
+    if (t.transaction_type !== 'sale') return
+
+  const month = new Date(
+    t.created_at
+  ).toLocaleString('default', {
+    month: 'short'
+  })
+
+  monthlySales[month] =
+    (monthlySales[month] || 0) +
+    Number(t.quantity)
+  })
+
+  const salesData = Object.keys(
+    monthlySales
+  ).map((month) => ({
+    month,
+    sales: monthlySales[month]
+  }))
 
   return (
     <div

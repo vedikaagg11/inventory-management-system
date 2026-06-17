@@ -10,6 +10,7 @@ export default function TransactionsPage() {
   const [productId, setProductId] = useState('')
   const [quantity, setQuantity] = useState('')
   const [type, setType] = useState('sale')
+  const [role, setRole] = useState('')
 
   const fetchData = async () => {
     const {
@@ -20,11 +21,12 @@ export default function TransactionsPage() {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('company_id')
+      .select('company_id, role')
       .eq('id', user.id)
       .single()
 
     if (!profile) return
+    setRole(profile.role)
 
     const { data: productsData } = await supabase
       .from('products')
@@ -98,7 +100,8 @@ export default function TransactionsPage() {
           company_id: profile.company_id,
           product_id: productId,
           quantity: qty,
-          transaction_type: type
+          transaction_type: type,
+          created_by: user.id
         }
       ])
 
@@ -171,9 +174,11 @@ export default function TransactionsPage() {
             Sale
           </option>
 
-          <option value="purchase">
-            Purchase
-          </option>
+          {role === 'admin' && (
+            <option value="purchase">
+              Purchase
+            </option>
+          )}
         </select>
 
         <input

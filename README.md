@@ -203,4 +203,4 @@ Vedika Aggarwal
 
 Computer Science Engineering Student
 
-AI-Powered Inventory Management System Internship Project
+AI-Powered Inventory Management System 

@@ -29,6 +29,10 @@ export default function SignupPage() {
         email,
         password
       })
+      if (!data.user) {
+  alert('Signup failed')
+  return
+}
       console.log(data)
       console.log(error)
     if (error) {

@@ -61,8 +61,9 @@ export default function EmployeeSignupPage() {
         .insert([
           {
             id: user.id,
-            company_id:
-              invite.company_id,
+            company_id: invite.company_id,
+            name: invite.name,
+            email: invite.email,
             role: invite.role
           }
         ])

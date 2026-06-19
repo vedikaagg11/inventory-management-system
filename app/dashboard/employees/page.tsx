@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<any[]>([])
+  const [activity, setActivity] = useState<any>({})
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -36,7 +37,7 @@ export default function EmployeesPage() {
     }
 
     const { data } = await supabase
-      .from('employee_invites')
+      .from('profiles')
       .select('*')
       .eq('company_id', profile.company_id)
       .order('created_at', {
@@ -44,6 +45,19 @@ export default function EmployeesPage() {
       })
 
     setEmployees(data || [])
+    const { data: transactions } = await supabase
+      .from('transactions')
+      .select('created_by')
+
+    const counts: any = {}
+
+    transactions?.forEach((t) => {
+      counts[t.created_by] =
+      (counts[t.created_by] || 0) + 1
+  })
+
+  setEmployees(data || [])
+  setActivity(counts)
   }
 
   const addEmployee = async () => {
@@ -204,9 +218,8 @@ export default function EmployeesPage() {
               <th style={thStyle}>Name</th>
               <th style={thStyle}>Email</th>
               <th style={thStyle}>Role</th>
-              <th style={thStyle}>
-                Action
-              </th>
+              <th style={thStyle}>Activity</th>
+              <th style={thStyle}>Action</th>
             </tr>
           </thead>
 
@@ -242,6 +255,9 @@ export default function EmployeesPage() {
                 </td>
 
                 <td style={tdStyle}>
+                  {activity[emp.id] || 0}
+                  {' '}
+                  transactions
                   <button
                     onClick={() =>
                       deleteEmployee(

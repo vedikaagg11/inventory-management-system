@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-'''import toast from 'react-hot-toast''''
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([])

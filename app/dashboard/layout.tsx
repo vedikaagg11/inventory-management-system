@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useEffect, useState } from 'react'
+import { Toaster } from 'react-hot-toast'
 
 export default function DashboardLayout({
   children
@@ -79,6 +80,11 @@ const fetchRole = async () => {
           name: 'Reports',
           icon: '📊',
           href: '/dashboard/reports'
+        },
+        {
+          name: 'Activity',
+          icon: '📜',
+          href: '/dashboard/activity'
         },
         {
           name: 'Employees',
@@ -174,6 +180,16 @@ const fetchRole = async () => {
         }}
       >
         {children}
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: '#1e293b',
+              color: '#fff'
+            }
+          }}
+        />
       </div>
     </div>
   )

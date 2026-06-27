@@ -1,5 +1,9 @@
 'use client'
 
+import * as XLSX from 'xlsx'
+import { saveAs } from 'file-saver'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
@@ -9,8 +13,9 @@ export default function ReportsPage() {
 
   useEffect(() => {
     fetchProducts()
+
     const checkRole = async () => {
-  const {
+    const {
     data: { user }
   } = await supabase.auth.getUser()
 
@@ -103,6 +108,88 @@ checkRole()
             100
         )
 
+  const exportExcel = () => {
+    const reportData = products.map((p) => ({
+    Product: p.name,
+    Quantity: p.quantity,
+    Price: p.price,
+    Value:
+      Number(p.quantity) *
+      Number(p.price || 0),
+    Status:
+      Number(p.quantity) < 5
+        ? 'Low Stock'
+        : 'Healthy'
+  }))
+
+  const worksheet =
+    XLSX.utils.json_to_sheet(reportData)
+
+  const workbook =
+    XLSX.utils.book_new()
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    worksheet,
+    'Inventory Report'
+  )
+
+  const excelBuffer =
+    XLSX.write(workbook, {
+      bookType: 'xlsx',
+      type: 'array'
+    })
+
+  const fileData = new Blob(
+    [excelBuffer],
+    {
+      type:
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    }
+  )
+
+  saveAs(
+    fileData,
+    'Inventory_Report.xlsx'
+  )
+}
+
+  const downloadPDF = () => {
+  const doc = new jsPDF()
+
+  doc.setFontSize(18)
+  doc.text('Inventory Report', 14, 20)
+
+  doc.setFontSize(12)
+  doc.text(`Total Products: ${totalProducts}`, 14, 30)
+  doc.text(`Total Quantity: ${totalQuantity}`, 14, 40)
+  doc.text(`Inventory Value: Rs. ${inventoryValue.toLocaleString('en-IN')}`, 14, 50)
+  doc.text(`Inventory Health: ${healthScore}%`, 14, 60)
+
+  autoTable(doc, {
+    startY: 80,
+    head: [[
+      'Product',
+      'Quantity',
+      'Price',
+      'Value',
+      'Status'
+    ]],
+    body: products.map((p) => [
+      p.name,
+      p.quantity,
+      p.price,
+      Number(p.quantity) *
+        Number(p.price || 0),
+      Number(p.quantity) < 5
+        ? 'Low Stock'
+        : 'Healthy'
+    ])
+  })
+
+  doc.save('inventory-report.pdf')
+}
+  
   return (
     <div>
       <h1
@@ -113,6 +200,36 @@ checkRole()
       >
         📊 Reports
       </h1>
+      <button
+  onClick={downloadPDF}
+  style={{
+    backgroundColor: '#2563eb',
+    color: 'white',
+    border: 'none',
+    padding: '12px 18px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    marginBottom: '20px'
+  }}
+>
+  📄 Download PDF Report
+</button>
+<button
+  onClick={exportExcel}
+  style={{
+    backgroundColor: '#16a34a',
+    color: 'white',
+    border: 'none',
+    padding: '12px 18px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    marginBottom: '20px',
+    marginLeft: '10px'
+  }}
+>
+  📊 Export Excel
+</button>
+
 
       {/* Stats */}
       <div

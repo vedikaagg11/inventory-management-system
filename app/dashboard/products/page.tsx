@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+'''import toast from 'react-hot-toast''''
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([])
@@ -9,6 +10,8 @@ export default function ProductsPage() {
   const [quantity, setQuantity] = useState('')
   const [price, setPrice] = useState('')
   const [imageUrl, setImageUrl] = useState('')
+  const [category, setCategory] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('')
   const [search, setSearch] = useState('')
   const [role, setRole] = useState('')
 
@@ -16,6 +19,7 @@ export default function ProductsPage() {
   const [editName, setEditName] = useState('')
   const [editQuantity, setEditQuantity] = useState('')
   const [editPrice, setEditPrice] = useState('')
+  const [editCategory, setEditCategory] = useState('')
 
   const fetchProducts = async () => {
     const {
@@ -61,6 +65,7 @@ export default function ProductsPage() {
         name,
         quantity: Number(quantity),
         price: Number(price),
+        category,
         image_url: imageUrl,
         company_id: profile.company_id
       }
@@ -69,32 +74,43 @@ export default function ProductsPage() {
     setName('')
     setQuantity('')
     setPrice('')
+    setCategory('')
     setImageUrl('')
 
     fetchProducts()
   }
 
   const deleteProduct = async (id: string) => {
-    await supabase
+    const { error } = await supabase
       .from('products')
       .delete()
       .eq('id', id)
+
+    if (error) {
+      alert(error.message)
+      return
+    }
 
     fetchProducts()
   }
 
   const updateProduct = async (id: string) => {
-    await supabase
+    const { error } = await supabase
       .from('products')
       .update({
         name: editName,
         quantity: Number(editQuantity),
-        price: Number(editPrice)
+        price: Number(editPrice),
+        category: editCategory
       })
       .eq('id', id)
+    if (error) {
+      alert(error.message)
+      return
+    }
 
     setEditingId(null)
-
+    setEditCategory('')
     fetchProducts()
   }
 
@@ -102,8 +118,23 @@ export default function ProductsPage() {
     fetchProducts()
   }, [])
 
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
+  const filteredProducts = products.filter(
+    (p) => {
+      const matchSearch =
+        p.name
+          .toLowerCase()
+          .includes(search.toLowerCase())
+
+      const matchCategory =
+        categoryFilter === ''
+          ? true
+          : p.category === categoryFilter
+
+      return (
+        matchSearch &&
+        matchCategory
+      )
+    }
   )
 
   return (
@@ -145,6 +176,40 @@ export default function ProductsPage() {
           marginBottom: '20px'
         }}
       />
+
+      <select
+        value={categoryFilter}
+        onChange={(e) =>
+          setCategoryFilter(e.target.value)
+        }
+        style={{
+          padding: '12px',
+          borderRadius: '10px',
+          border: '1px solid #d1d5db',
+          marginBottom: '25px',
+          marginLeft: '10px'
+        }}
+      >
+        <option value="">
+          All Categories
+        </option>
+
+        {[
+          ...new Set(
+            products.map(
+              (p) => p.category
+            )
+          )
+        ].map((category) => (
+          <option
+            key={category}
+            value={category}
+          >
+            {category}
+          </option>
+        ))}
+      </select>
+
       {role === 'admin' && (
         <div
           style={{
@@ -188,6 +253,21 @@ export default function ProductsPage() {
               padding: '10px',
               marginRight: '10px',
               width: '120px',
+              borderRadius: '8px',
+              border: '1px solid #d1d5db'
+            }}
+          />
+
+          <input
+            placeholder="Category"
+            value={category}
+            onChange={(e) =>
+              setCategory(e.target.value)
+            }
+            style={{
+              padding: '10px',
+              marginRight: '10px',
+              width: '150px',
               borderRadius: '8px',
               border: '1px solid #d1d5db'
             }}
@@ -292,6 +372,18 @@ export default function ProductsPage() {
                       marginBottom: '10px'
                     }}
                   />
+                  <input
+                    placeholder="Category"
+                    value={editCategory}
+                    onChange={(e) =>
+                      setEditCategory(e.target.value)
+                    }
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      marginBottom: '10px'
+                    }}
+                  />
                 </>
               ) : (
                 <>
@@ -303,6 +395,15 @@ export default function ProductsPage() {
                   >
                     {p.name}
                   </h2>
+
+                  <p
+                    style={{
+                      color: '#6b7280',
+                      marginBottom: '8px'
+                    }}
+                  >
+                    Category: {p.category || 'General'}
+                  </p>
 
                   <p
                     style={{
@@ -365,12 +466,9 @@ export default function ProductsPage() {
     onClick={() => {
       setEditingId(p.id)
       setEditName(p.name)
-      setEditQuantity(
-        String(p.quantity)
-      )
-      setEditPrice(
-        String(p.price || '')
-      )
+      setEditQuantity(String(p.quantity))
+      setEditPrice(String(p.price || ''))
+      setEditCategory(p.category || '')
     }}
     style={{
       backgroundColor: '#f59e0b',
@@ -410,3 +508,10 @@ export default function ProductsPage() {
     </div>
   )
 }
+
+
+
+
+
+
+
